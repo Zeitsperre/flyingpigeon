@@ -1,0 +1,112 @@
+clear
+close all
+figure
+cd Analysis_Multimodel\ 
+factor=2.5;
+initi=10
+endi=90
+order=2
+for ilon=1:17
+    ilon
+for jlat=1:20
+col=hsv(15);
+CUMX=[];
+CUMY=[];
+for caso=1:12
+    if caso==1
+location='p';  period='ACCESS1-0_tas_historical_19000101-19991231_Eur_interp';
+period1=period;
+    elseif caso==2
+location='p';  period='CCSM4_tas_historical_18850101-20051231_Eur_interp';
+period2=period;
+    elseif caso==3
+location='p';  period='CNRM-CM5_tas_historical_19000101-19991231_Eur_interp';
+period1=period;
+    elseif caso==4
+location='p';  period='EC-EARTH_tas_historical_19000101-19991231_Eur_interp';
+period2=period;
+    elseif caso==5
+location='p';  period='GFDL-ESM2G_tas_historical_18960101-20001231_Eur_interp';
+period2=period;
+    elseif caso==6
+location='p';  period='hadcm3_temp_r1_1800-2000_Eur_interp';
+period1=period;
+    elseif caso==7
+location='p';  period='inmcm4_tas_historical_19000101-19991231_Eur_interp';
+period2=period;
+    elseif caso==8
+location='p';  period='IPSL_tas_historical_18500101-20051231_Eur';
+period2=period;
+    elseif caso==9
+location='p';  period='MIROC5_tas_historical_19000101-19991231_Eur_interp';
+period1=period;
+    elseif caso==10
+location='p';  period='MPI-ESM-MR_tas_historical_19000101-19991231_Eur_interp';
+period2=period;
+    elseif caso==11
+location='p';  period='MRI-CGCM3_tas_historical_19000101-19991231_Eur_interp';
+period2=period;
+    elseif caso==12
+location='p';  period='20CR_air_1871-2011_Eur_interp';
+period2=period;
+    end
+tmbound=100;
+tMbound=-100;
+for iiii=1:4
+   load([ period, num2str(iiii./2), 'AD.mat']);
+vec=vec-273;
+  
+   p=polyfit(squeeze(vec(jlat,ilon,initi:endi)),squeeze(kstatAD(jlat,ilon,initi:endi)./critvalAD(jlat,ilon,initi:endi)),order);
+    yfit = polyval(p,squeeze(vec(jlat,ilon,initi:endi)));
+    
+    indmi=find(yfit<1 ,1);
+    indma=endi-find(flipud(yfit)<1,1);
+    
+    if isempty(indmi)==1
+        crim=squeeze(kstatAD(jlat,ilon,initi:endi)./critvalAD(jlat,ilon,initi:endi));
+       [aa  bb]=min(crim);
+       crim=flipud(crim(1:bb));
+        indmi=bb-find(crim>1,1);
+    end
+    
+    if isempty(indma)==1
+        crim=squeeze(kstatAD(jlat,ilon,initi:endi)./critvalAD(jlat,ilon,initi:endi));
+       [aa  bb]=min(crim);
+       crim=crim(bb:end);
+        indma=bb+find(crim>1,1);
+    end
+    if indmi>tmbound
+        indmi=tmbound;
+    end
+    if indma<tMbound
+        indma=tMbound;
+    end
+    tmbound=indmi;
+    if isempty(indmi)==1
+        indmi=0
+    end
+    if isempty(indma )==1
+        indma=0
+    end
+    tMbound=indma;
+    tminn(iiii)=squeeze(vec(jlat,ilon,initi+indmi));
+    tmaxx(iiii)=squeeze(vec(jlat,ilon,initi+indma));
+    
+       
+end
+
+hold all;
+title([location, ', period: ', period],'Fontsize', 16);
+X=[[1:length(tminn)]./2,fliplr([1:length(tminn)]./2)];
+Y=[tminn,fliplr(tmaxx)];
+
+CUMX=[CUMX X'];
+CUMY=[CUMY Y'];
+
+end
+
+Analysis_models(ilon,jlat,:,:)=CUMY;
+Analysis_means(ilon,jlat,:)=mean(CUMY(:,1:11),2);
+Analysis_std(ilon,jlat,:)=std(CUMY(:,1:11),0,2);
+end
+end
