@@ -4,7 +4,7 @@ extends = buildout.cfg
 
 ## development options
 #log-level = WARN
-versions = noversions
+#versions = noversions
 
 [settings]
 hostname = localhost
